@@ -498,13 +498,13 @@ module GraphQL
         raw = v.raw
         case raw
         when Array
-          raw.map{|vv| cast_jsonany_to_jsontype(vv).as(JSONType)}
+          raw.map { |vv| cast_jsonany_to_jsontype(vv).as(JSONType) }
         when Hash
           raw.keys.reduce(Hash(String, JSONType).new) do |hash, key|
             hash[key] = cast_jsonany_to_jsontype(raw[key])
             hash
           end
-        else 
+        else
           raw
         end
       end
@@ -529,6 +529,11 @@ module GraphQL
 
       private def cast_to_return(value)
         case value
+        when GraphQL::Language::InputObject
+          value.arguments.reduce(Hash(String, ReturnType).new) do |memo, h|
+            memo[h.name] = cast_to_return(h.value).as(ReturnType)
+            memo
+          end
         when Hash
           value.reduce(Hash(String, ReturnType).new) do |memo, h|
             memo[h[0]] = cast_to_return(h[1]).as(ReturnType)
